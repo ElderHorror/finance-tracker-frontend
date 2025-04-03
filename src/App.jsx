@@ -149,7 +149,7 @@ function App() {
     if (totals.length >= 2) {
       try {
         const response = await axios.post(
-          "https://finance-tracker-backend.up.railway.app/predict",
+          "https://finance-tracker-backend-production-576f.up.railway.app/predict",
           { expenses: totals }
         );
         setPrediction(response.data.prediction);
