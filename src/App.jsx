@@ -1,15 +1,31 @@
 import { useState, useEffect } from "react";
 import { Pie, Bar } from "react-chartjs-2";
-import { Chart as ChartJS, ArcElement, Tooltip, Legend, BarElement, CategoryScale, LinearScale } from "chart.js";
+import {
+  Chart as ChartJS,
+  ArcElement,
+  Tooltip,
+  Legend,
+  BarElement,
+  CategoryScale,
+  LinearScale,
+} from "chart.js";
 import axios from "axios";
 
-ChartJS.register(ArcElement, Tooltip, Legend, BarElement, CategoryScale, LinearScale);
+ChartJS.register(
+  ArcElement,
+  Tooltip,
+  Legend,
+  BarElement,
+  CategoryScale,
+  LinearScale
+);
 
 function App() {
-  const [expenses, setExpenses] = useState(() => JSON.parse(localStorage.getItem("expenses")) || []);
+  const [expenses, setExpenses] = useState(
+    () => JSON.parse(localStorage.getItem("expenses")) || []
+  );
   const [category, setCategory] = useState("");
   const [amount, setAmount] = useState("");
-  const [date, setDate] = useState(""); // New date state
   const [editIndex, setEditIndex] = useState(null);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -22,25 +38,30 @@ function App() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const expenseDate = date ? new Date(date) : new Date(); // Use selected date or today
+    if (!category || !amount) return; // Prevent submission if either is empty
     if (editIndex !== null) {
       const updatedExpenses = [...expenses];
-      updatedExpenses[editIndex] = { category, amount: Number(amount), date: expenseDate };
+      updatedExpenses[editIndex] = {
+        category,
+        amount: Number(amount),
+        date: new Date(expenses[editIndex].date),
+      };
       setExpenses(updatedExpenses);
       setEditIndex(null);
     } else {
-      setExpenses([...expenses, { category, amount: Number(amount), date: expenseDate }]);
+      setExpenses([
+        ...expenses,
+        { category, amount: Number(amount), date: new Date() },
+      ]);
     }
     setCategory("");
     setAmount("");
-    setDate(""); // Reset date after submit
   };
 
   const handleEdit = (index) => {
     setEditIndex(index);
     setCategory(expenses[index].category);
     setAmount(expenses[index].amount);
-    setDate(new Date(expenses[index].date).toISOString().split("T")[0]); // Format date for input
   };
 
   const handleDelete = (index) => {
@@ -49,7 +70,6 @@ function App() {
       setEditIndex(null);
       setCategory("");
       setAmount("");
-      setDate("");
     }
   };
 
@@ -64,9 +84,13 @@ function App() {
   });
 
   const getPieChartData = () => {
-    const categories = [...new Set(filteredExpenses.map((exp) => exp.category))];
+    const categories = [
+      ...new Set(filteredExpenses.map((exp) => exp.category)),
+    ];
     const amounts = categories.map((cat) =>
-      filteredExpenses.filter((exp) => exp.category === cat).reduce((sum, exp) => sum + exp.amount, 0)
+      filteredExpenses
+        .filter((exp) => exp.category === cat)
+        .reduce((sum, exp) => sum + exp.amount, 0)
     );
     return {
       labels: categories,
@@ -82,11 +106,15 @@ function App() {
 
   const getBarChartData = () => {
     const weeklyTotals = filteredExpenses.reduce((acc, exp) => {
-      const week = Math.floor((new Date() - new Date(exp.date)) / (7 * 24 * 60 * 60 * 1000));
+      const week = Math.floor(
+        (new Date() - new Date(exp.date)) / (7 * 24 * 60 * 60 * 1000)
+      );
       acc[week] = (acc[week] || 0) + exp.amount;
       return acc;
     }, {});
-    const labels = Object.keys(weeklyTotals).map((week) => `Week ${Number(week) + 1}`);
+    const labels = Object.keys(weeklyTotals).map(
+      (week) => `Week ${Number(week) + 1}`
+    );
     const data = Object.values(weeklyTotals);
     return {
       labels,
@@ -104,14 +132,21 @@ function App() {
 
   const fetchPrediction = async () => {
     const weeklyTotals = expenses.reduce((acc, exp) => {
-      const week = Math.floor((new Date() - new Date(exp.date)) / (7 * 24 * 60 * 60 * 1000));
+      const week = Math.floor(
+        (new Date() - new Date(exp.date)) / (7 * 24 * 60 * 60 * 1000)
+      );
       acc[week] = (acc[week] || 0) + exp.amount;
       return acc;
     }, {});
-    const totals = Object.values(weeklyTotals).map((total) => ({ amount: total }));
+    const totals = Object.values(weeklyTotals).map((total) => ({
+      amount: total,
+    }));
     if (totals.length >= 2) {
       try {
-        const response = await axios.post("https://finance-tracker-backend-production-576f.up.railway.app/predict", { expenses: totals });
+        const response = await axios.post(
+          "https://finance-tracker-backend.up.railway.app/predict",
+          { expenses: totals }
+        );
         setPrediction(response.data.prediction);
       } catch (error) {
         console.error("Prediction error:", error);
@@ -122,13 +157,20 @@ function App() {
     }
   };
 
-  const totalSpending = filteredExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+  const totalSpending = filteredExpenses.reduce(
+    (sum, exp) => sum + exp.amount,
+    0
+  );
+
+  const isFormValid = category && amount; // Button enabled only if both are filled
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-700 to-blue-500 text-white flex flex-col md:flex-row font-sans">
       {/* Sidebar */}
       <div className="w-full md:w-1/3 p-6 bg-blue-800/80 backdrop-blur-md shadow-xl flex flex-col">
-        <h1 className="text-3xl md:text-4xl font-extrabold mb-8 tracking-tight text-center md:text-left">Finance Dashboard</h1>
+        <h1 className="text-3xl md:text-4xl font-extrabold mb-8 tracking-tight text-center md:text-left">
+          Finance Dashboard
+        </h1>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label className="block text-sm font-medium">Category</label>
@@ -154,18 +196,14 @@ function App() {
               placeholder="Enter amount"
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium">Date</label>
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="w-full p-3 mt-1 bg-blue-900/50 border border-blue-600 rounded-lg text-white focus:ring-2 focus:ring-blue-400 transition duration-200"
-            />
-          </div>
           <button
             type="submit"
-            className="w-full bg-blue-500 p-3 rounded-lg hover:bg-blue-400 transition duration-300 font-semibold"
+            disabled={!isFormValid} // Disable if category or amount is empty
+            className={`w-full p-3 rounded-lg transition duration-300 font-semibold ${
+              isFormValid
+                ? "bg-blue-500 hover:bg-blue-400"
+                : "bg-gray-500 cursor-not-allowed"
+            }`}
           >
             {editIndex !== null ? "Update Expense" : "Add Expense"}
           </button>
@@ -220,7 +258,9 @@ function App() {
 
         <div className="mt-8 p-4 bg-blue-900/50 rounded-lg">
           <h3 className="text-lg font-semibold">Total Spending</h3>
-          <p className="text-2xl font-bold text-blue-200">${totalSpending.toFixed(2)}</p>
+          <p className="text-2xl font-bold text-blue-200">
+            ${totalSpending.toFixed(2)}
+          </p>
         </div>
       </div>
 
@@ -240,7 +280,9 @@ function App() {
                   }}
                 />
               ) : (
-                <p className="text-blue-200 text-center mt-20">No expenses in this range!</p>
+                <p className="text-blue-200 text-center mt-20">
+                  No expenses in this range!
+                </p>
               )}
             </div>
           </div>
@@ -257,7 +299,9 @@ function App() {
                   }}
                 />
               ) : (
-                <p className="text-blue-200 text-center mt-20">No expenses in this range!</p>
+                <p className="text-blue-200 text-center mt-20">
+                  No expenses in this range!
+                </p>
               )}
             </div>
           </div>
@@ -279,8 +323,17 @@ function App() {
                 </thead>
                 <tbody>
                   {filteredExpenses.map((exp, idx) => (
-                    <tr key={idx} className="hover:bg-blue-700/50 transition duration-200">
-                      <td className="p-2">{new Date(exp.date).toLocaleDateString()}</td>
+                    <tr
+                      key={idx}
+                      className="hover:bg-blue-700/50 transition duration-200"
+                    >
+                      <td className="p-2">
+                        {new Date(exp.date).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        })}
+                      </td>
                       <td className="p-2">{exp.category}</td>
                       <td className="p-2">${exp.amount.toFixed(2)}</td>
                       <td className="p-2 flex space-x-2">
@@ -315,7 +368,10 @@ function App() {
             {prediction && (
               <div className="bg-blue-900/50 p-4 rounded-lg shadow-md w-full md:w-1/2 text-center animate-fade-in">
                 <p className="text-lg">
-                  Next week’s predicted spend: <span className="font-bold text-green-300">${prediction}</span>
+                  Next week’s predicted spend:{" "}
+                  <span className="font-bold text-green-300">
+                    ${prediction}
+                  </span>
                 </p>
               </div>
             )}
