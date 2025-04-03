@@ -111,7 +111,7 @@ function App() {
     const totals = Object.values(weeklyTotals).map((total) => ({ amount: total }));
     if (totals.length >= 2) {
       try {
-        const response = await axios.post("https://finance-tracker-backend.up.railway.app/predict", { expenses: totals });
+        const response = await axios.post("https://finance-tracker-backend-production-576f.up.railway.app/predict", { expenses: totals });
         setPrediction(response.data.prediction);
       } catch (error) {
         console.error("Prediction error:", error);
