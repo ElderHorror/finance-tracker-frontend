@@ -26,6 +26,7 @@ function App() {
   );
   const [category, setCategory] = useState("");
   const [amount, setAmount] = useState("");
+  const [date, setDate] = useState(""); // New date input state
   const [editIndex, setEditIndex] = useState(null);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -38,30 +39,33 @@ function App() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!category || !amount) return; // Prevent submission if either is empty
+    if (!category || !amount) return; // Prevent submission if category or amount is empty
+    const expenseDate = date ? new Date(date) : new Date(); // Use selected date or current date
     if (editIndex !== null) {
       const updatedExpenses = [...expenses];
       updatedExpenses[editIndex] = {
         category,
         amount: Number(amount),
-        date: new Date(expenses[editIndex].date),
+        date: expenseDate,
       };
       setExpenses(updatedExpenses);
       setEditIndex(null);
     } else {
       setExpenses([
         ...expenses,
-        { category, amount: Number(amount), date: new Date() },
+        { category, amount: Number(amount), date: expenseDate },
       ]);
     }
     setCategory("");
     setAmount("");
+    setDate(""); // Reset date input after submission
   };
 
   const handleEdit = (index) => {
     setEditIndex(index);
     setCategory(expenses[index].category);
     setAmount(expenses[index].amount);
+    setDate(new Date(expenses[index].date).toISOString().split("T")[0]); // Pre-fill date in YYYY-MM-DD format
   };
 
   const handleDelete = (index) => {
@@ -70,6 +74,7 @@ function App() {
       setEditIndex(null);
       setCategory("");
       setAmount("");
+      setDate("");
     }
   };
 
@@ -194,6 +199,15 @@ function App() {
               onChange={(e) => setAmount(e.target.value)}
               className="w-full p-3 mt-1 bg-blue-900/50 border border-blue-600 rounded-lg text-white focus:ring-2 focus:ring-blue-400 transition duration-200"
               placeholder="Enter amount"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium">Date</label>
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="w-full p-3 mt-1 bg-blue-900/50 border border-blue-600 rounded-lg text-white focus:ring-2 focus:ring-blue-400 transition duration-200"
             />
           </div>
           <button
