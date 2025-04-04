@@ -26,12 +26,13 @@ function App() {
   );
   const [category, setCategory] = useState("");
   const [amount, setAmount] = useState("");
-  const [date, setDate] = useState(""); // New date input state
+  const [date, setDate] = useState("");
   const [editIndex, setEditIndex] = useState(null);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [prediction, setPrediction] = useState(null);
+  const [showInfo, setShowInfo] = useState(false);
 
   useEffect(() => {
     localStorage.setItem("expenses", JSON.stringify(expenses));
@@ -39,8 +40,8 @@ function App() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!category || !amount) return; // Prevent submission if category or amount is empty
-    const expenseDate = date ? new Date(date) : new Date(); // Use selected date or current date
+    if (!category || !amount) return;
+    const expenseDate = date ? new Date(date) : new Date();
     if (editIndex !== null) {
       const updatedExpenses = [...expenses];
       updatedExpenses[editIndex] = {
@@ -58,14 +59,14 @@ function App() {
     }
     setCategory("");
     setAmount("");
-    setDate(""); // Reset date input after submission
+    setDate("");
   };
 
   const handleEdit = (index) => {
     setEditIndex(index);
     setCategory(expenses[index].category);
     setAmount(expenses[index].amount);
-    setDate(new Date(expenses[index].date).toISOString().split("T")[0]); // Pre-fill date in YYYY-MM-DD format
+    setDate(new Date(expenses[index].date).toISOString().split("T")[0]);
   };
 
   const handleDelete = (index) => {
@@ -88,6 +89,14 @@ function App() {
     return true;
   });
 
+  const totalSpending = filteredExpenses.reduce(
+    (sum, exp) => sum + exp.amount,
+    0
+  );
+  const avgWeeklySpend = filteredExpenses.length
+    ? totalSpending / (filteredExpenses.length / 7 || 1)
+    : 0;
+
   const getPieChartData = () => {
     const categories = [
       ...new Set(filteredExpenses.map((exp) => exp.category)),
@@ -102,7 +111,7 @@ function App() {
       datasets: [
         {
           data: amounts,
-          backgroundColor: ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0"],
+          backgroundColor: ["#34D399", "#A78BFA", "#FBBF24", "#60A5FA"],
           borderWidth: 1,
         },
       ],
@@ -127,8 +136,8 @@ function App() {
         {
           label: "Spending ($)",
           data,
-          backgroundColor: "#3B82F6",
-          borderColor: "#1E40AF",
+          backgroundColor: "#A78BFA",
+          borderColor: "#7C3AED",
           borderWidth: 1,
         },
       ],
@@ -154,7 +163,6 @@ function App() {
         );
         setPrediction(response.data.prediction);
       } catch (error) {
-        console.error("Prediction error:", error);
         setPrediction("Error fetching prediction");
       }
     } else {
@@ -162,27 +170,32 @@ function App() {
     }
   };
 
-  const totalSpending = filteredExpenses.reduce(
-    (sum, exp) => sum + exp.amount,
-    0
-  );
-
-  const isFormValid = category && amount; // Button enabled only if both are filled
+  const isFormValid = category && amount;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-700 to-blue-500 text-white flex flex-col md:flex-row font-sans">
+    <div className="min-h-screen bg-gray-900 text-white flex flex-col md:flex-row font-sans">
       {/* Sidebar */}
-      <div className="w-full md:w-1/3 p-6 bg-blue-800/80 backdrop-blur-md shadow-xl flex flex-col">
-        <h1 className="text-3xl md:text-4xl font-extrabold mb-8 tracking-tight text-center md:text-left">
-          Finance Dashboard
-        </h1>
+      <div className="w-full md:w-1/3 p-6 bg-gray-800 shadow-xl flex flex-col animate-slide-in">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-extrabold text-teal-400">
+            Finance Tracker
+          </h1>
+          <button
+            onClick={() => setShowInfo(true)}
+            className="bg-purple-500 px-3 py-1 rounded-lg hover:bg-purple-400 transition duration-300 animate-pulse text-sm"
+          >
+            ?
+          </button>
+        </div>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium">Category</label>
+            <label className="block text-sm font-medium text-gray-300">
+              Category
+            </label>
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              className="w-full p-3 mt-1 bg-blue-900/50 border border-blue-600 rounded-lg text-white focus:ring-2 focus:ring-blue-400 transition duration-200"
+              className="w-full p-3 mt-1 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-teal-400 transition duration-200"
             >
               <option value="">Select</option>
               <option value="Food">Food</option>
@@ -192,42 +205,45 @@ function App() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium">Amount ($)</label>
+            <label className="block text-sm font-medium text-gray-300">
+              Amount ($)
+            </label>
             <input
               type="number"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="w-full p-3 mt-1 bg-blue-900/50 border border-blue-600 rounded-lg text-white focus:ring-2 focus:ring-blue-400 transition duration-200"
+              className="w-full p-3 mt-1 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-teal-400 transition duration-200"
               placeholder="Enter amount"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium">Date</label>
+            <label className="block text-sm font-medium text-gray-300">
+              Date
+            </label>
             <input
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="w-full p-3 mt-1 bg-blue-900/50 border border-blue-600 rounded-lg text-white focus:ring-2 focus:ring-blue-400 transition duration-200"
+              className="w-full p-3 mt-1 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-teal-400 transition duration-200"
             />
           </div>
           <button
             type="submit"
-            disabled={!isFormValid} // Disable if category or amount is empty
+            disabled={!isFormValid}
             className={`w-full p-3 rounded-lg transition duration-300 font-semibold ${
               isFormValid
-                ? "bg-blue-500 hover:bg-blue-400"
-                : "bg-gray-500 cursor-not-allowed"
+                ? "bg-teal-500 hover:bg-teal-400"
+                : "bg-gray-600 cursor-not-allowed"
             }`}
           >
             {editIndex !== null ? "Update Expense" : "Add Expense"}
           </button>
         </form>
 
-        {/* Collapsible Filter */}
         <div className="mt-6">
           <button
             onClick={() => setIsFilterOpen(!isFilterOpen)}
-            className="w-full bg-blue-600 p-3 rounded-lg hover:bg-blue-500 transition duration-300 font-semibold flex justify-between items-center"
+            className="w-full bg-purple-500 p-3 rounded-lg hover:bg-purple-400 transition duration-300 font-semibold flex justify-between items-center"
           >
             Filter by Date
             <span>{isFilterOpen ? "▲" : "▼"}</span>
@@ -239,21 +255,25 @@ function App() {
           >
             <div className="mt-4 space-y-4">
               <div>
-                <label className="block text-sm font-medium">Start Date</label>
+                <label className="block text-sm font-medium text-gray-300">
+                  Start Date
+                </label>
                 <input
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full p-3 mt-1 bg-blue-900/50 border border-blue-600 rounded-lg text-white focus:ring-2 focus:ring-blue-400 transition duration-200"
+                  className="w-full p-3 mt-1 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-teal-400 transition duration-200"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium">End Date</label>
+                <label className="block text-sm font-medium text-gray-300">
+                  End Date
+                </label>
                 <input
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="w-full p-3 mt-1 bg-blue-900/50 border border-blue-600 rounded-lg text-white focus:ring-2 focus:ring-blue-400 transition duration-200"
+                  className="w-full p-3 mt-1 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-teal-400 transition duration-200"
                 />
               </div>
               <button
@@ -262,7 +282,7 @@ function App() {
                   setEndDate("");
                   setIsFilterOpen(false);
                 }}
-                className="w-full bg-gray-500 p-3 rounded-lg hover:bg-gray-400 transition duration-300 font-semibold"
+                className="w-full bg-gray-600 p-3 rounded-lg hover:bg-gray-500 transition duration-300 font-semibold"
               >
                 Clear Filter
               </button>
@@ -270,65 +290,80 @@ function App() {
           </div>
         </div>
 
-        <div className="mt-8 p-4 bg-blue-900/50 rounded-lg">
-          <h3 className="text-lg font-semibold">Total Spending</h3>
-          <p className="text-2xl font-bold text-blue-200">
-            ${totalSpending.toFixed(2)}
+        <div className="mt-6 bg-gray-700 p-4 rounded-lg animate-fade-in">
+          <h3 className="text-lg font-semibold text-teal-400">
+            Spending Summary
+          </h3>
+          <p className="text-gray-300">
+            Total:{" "}
+            <span className="font-bold text-teal-300">
+              ${totalSpending.toFixed(2)}
+            </span>
+          </p>
+          <p className="text-gray-300">
+            Avg. Weekly:{" "}
+            <span className="font-bold text-teal-300">
+              ${avgWeeklySpend.toFixed(2)}
+            </span>
           </p>
         </div>
+
+        {totalSpending > 500 && (
+          <div className="mt-4 bg-red-500/20 p-4 rounded-lg animate-fade-in text-center">
+            <p className="text-red-300 font-semibold">
+              Warning: Spending exceeds $500!
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Main Content */}
-      <div className="w-full md:w-2/3 p-4 md:p-8 flex flex-col space-y-8">
-        {/* Charts */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-fade-in">
-          <div className="bg-white/10 p-6 rounded-xl shadow-lg backdrop-blur-md">
-            <h2 className="text-xl font-semibold mb-4">Category Breakdown</h2>
-            <div className="h-64">
-              {filteredExpenses.length > 0 ? (
+      <div className="w-full md:w-2/3 p-6 flex flex-col space-y-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-gray-800 p-6 rounded-xl shadow-lg animate-slide-in">
+            <h2 className="text-xl font-semibold mb-4 text-purple-400">
+              Category Breakdown
+            </h2>
+            <div className="h-80">
+              {filteredExpenses.length ? (
                 <Pie
                   data={getPieChartData()}
-                  options={{
-                    maintainAspectRatio: false,
-                    plugins: { legend: { position: "bottom" } },
-                  }}
+                  options={{ maintainAspectRatio: false }}
                 />
               ) : (
-                <p className="text-blue-200 text-center mt-20">
-                  No expenses in this range!
-                </p>
+                <p className="text-gray-400 mt-20 text-center">No data yet!</p>
               )}
             </div>
           </div>
-          <div className="bg-white/10 p-6 rounded-xl shadow-lg backdrop-blur-md">
-            <h2 className="text-xl font-semibold mb-4">Weekly Spending</h2>
-            <div className="h-64">
-              {filteredExpenses.length > 0 ? (
+          <div className="bg-gray-800 p-6 rounded-xl shadow-lg animate-slide-in">
+            <h2 className="text-xl font-semibold mb-4 text-purple-400">
+              Weekly Spending
+            </h2>
+            <div className="h-80">
+              {filteredExpenses.length ? (
                 <Bar
                   data={getBarChartData()}
                   options={{
                     maintainAspectRatio: false,
                     scales: { y: { beginAtZero: true } },
-                    plugins: { legend: { position: "bottom" } },
                   }}
                 />
               ) : (
-                <p className="text-blue-200 text-center mt-20">
-                  No expenses in this range!
-                </p>
+                <p className="text-gray-400 mt-20 text-center">No data yet!</p>
               )}
             </div>
           </div>
         </div>
 
-        {/* Previous Spendings + Prediction */}
-        <div className="bg-white/10 p-6 rounded-xl shadow-lg backdrop-blur-md animate-fade-in">
-          <h2 className="text-xl font-semibold mb-4">Previous Spendings</h2>
-          {filteredExpenses.length > 0 ? (
+        <div className="bg-gray-800 p-6 rounded-xl shadow-lg animate-slide-in">
+          <h2 className="text-xl font-semibold mb-4 text-teal-400">
+            Previous Spendings
+          </h2>
+          {filteredExpenses.length ? (
             <div className="max-h-64 overflow-y-auto">
               <table className="w-full text-left">
                 <thead>
-                  <tr className="border-b border-blue-600">
+                  <tr className="border-b border-gray-600">
                     <th className="p-2">Date</th>
                     <th className="p-2">Category</th>
                     <th className="p-2">Amount</th>
@@ -339,7 +374,7 @@ function App() {
                   {filteredExpenses.map((exp, idx) => (
                     <tr
                       key={idx}
-                      className="hover:bg-blue-700/50 transition duration-200"
+                      className="hover:bg-gray-700 transition duration-200"
                     >
                       <td className="p-2">
                         {new Date(exp.date).toLocaleDateString("en-US", {
@@ -353,13 +388,13 @@ function App() {
                       <td className="p-2 flex space-x-2">
                         <button
                           onClick={() => handleEdit(expenses.indexOf(exp))}
-                          className="bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-400 transition duration-200"
+                          className="bg-yellow-500 px-2 py-1 rounded hover:bg-yellow-400 transition duration-200"
                         >
                           Edit
                         </button>
                         <button
                           onClick={() => handleDelete(expenses.indexOf(exp))}
-                          className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-400 transition duration-200"
+                          className="bg-red-500 px-2 py-1 rounded hover:bg-red-400 transition duration-200"
                         >
                           Delete
                         </button>
@@ -370,28 +405,59 @@ function App() {
               </table>
             </div>
           ) : (
-            <p className="text-blue-200">No expenses in this range!</p>
+            <p className="text-gray-400">No expenses yet!</p>
           )}
-          <div className="mt-6 flex flex-col items-center space-y-4">
-            <button
-              onClick={fetchPrediction}
-              className="w-full md:w-1/2 bg-green-500 p-3 rounded-lg hover:bg-green-400 transition duration-300 font-semibold"
-            >
-              Predict Next Week
-            </button>
-            {prediction && (
-              <div className="bg-blue-900/50 p-4 rounded-lg shadow-md w-full md:w-1/2 text-center animate-fade-in">
-                <p className="text-lg">
-                  Next week’s predicted spend:{" "}
-                  <span className="font-bold text-green-300">
-                    ${prediction}
-                  </span>
-                </p>
-              </div>
-            )}
-          </div>
+          <button
+            onClick={fetchPrediction}
+            className="mt-4 w-full bg-purple-500 p-3 rounded-lg hover:bg-purple-400 transition duration-300 font-semibold"
+          >
+            Predict Next Week
+          </button>
+          {prediction && (
+            <div className="mt-4 bg-gray-700 p-4 rounded-lg text-center animate-fade-in">
+              <p className="text-teal-300">
+                Next Week Prediction:{" "}
+                <span className="font-bold">${prediction}</span>
+              </p>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Info Modal */}
+      {showInfo && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center animate-fade-in">
+          <div className="bg-gray-800 p-6 rounded-xl shadow-lg max-w-md w-full animate-slide-in">
+            <h2 className="text-2xl font-bold mb-4 text-teal-400">
+              How to Use Finance Tracker
+            </h2>
+            <ul className="space-y-2 text-gray-300">
+              <li>
+                1. <span className="font-semibold">Add Expenses</span>: Pick a
+                category, enter an amount, and choose a date (or use today).
+              </li>
+              <li>
+                2. <span className="font-semibold">Filter</span>: Use the date
+                filter to narrow down your view.
+              </li>
+              <li>
+                3. <span className="font-semibold">Visualize</span>: Check
+                spending by category and week in the charts.
+              </li>
+              <li>
+                4. <span className="font-semibold">Predict</span>: Add 2+ weeks
+                of data, then click "Predict Next Week."
+              </li>
+            </ul>
+            <button
+              onClick={() => setShowInfo(false)}
+              className="mt-6 w-full bg-teal-500 p-3 rounded-lg hover:bg-teal-400 transition duration-300"
+            >
+              Got It!
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
