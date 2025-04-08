@@ -184,7 +184,7 @@ function LandingPage() {
         <p className="text-sm">
           Built by Adebayo |{" "}
           <a
-            href="https://github.com/[your-username]/finance-tracker"
+            href="https://github.com/ElderHorror/finance-tracker-frontend"
             target="_blank"
             rel="noopener noreferrer"
             className="text-teal-500 hover:underline"
@@ -193,7 +193,7 @@ function LandingPage() {
           </a>{" "}
           |{" "}
           <a
-            href="[your-portfolio-link]"
+            href="https://adebayo-adedeji-portfolio.vercel.app"
             target="_blank"
             rel="noopener noreferrer"
             className="text-teal-500 hover:underline"
